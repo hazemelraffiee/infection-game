@@ -5,13 +5,6 @@ import GameOverScreen from './GameOverScreen';
 import NameInputDialog from './NameInputDialog';
 import { useGameSettings } from './GameSettings';
 
-interface GameSettings {
-    ballCount: number;
-    ballRadius: number;
-    infectionDuration: number;
-    leaderboardSize: number;
-}
-
 interface LeaderboardEntry {
     playerName: string;
     value: number;
@@ -42,12 +35,9 @@ export const InfectionGame = () => {
         bestTimes: [],
     });
     const [showTutorial, setShowTutorial] = useState(true);
-    const [debug, setDebug] = useState({ mounted: false, startClicked: false });
 
     // Initialize leaderboard from localStorage
     useEffect(() => {
-        setDebug(prev => ({ ...prev, mounted: true }));
-
         try {
             const highScores = JSON.parse(localStorage.getItem('highScores') ?? '[]');
             const bestTimes = JSON.parse(localStorage.getItem('bestTimes') ?? '[]');
@@ -119,7 +109,6 @@ export const InfectionGame = () => {
 
     const startGame = () => {
         setShowTutorial(false);
-        setDebug(prev => ({ ...prev, startClicked: true }));
         setGameState(prev => ({
             ...prev,
             isGameOver: false,

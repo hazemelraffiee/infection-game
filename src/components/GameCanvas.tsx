@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Ball } from './Ball';
 import { CurvyLine } from './CurvyLine';
 import { ParticleSystem } from './ParticleSystem';
-import { BASE_SETTINGS, GameSettings } from './GameSettings';
+import { GameSettings } from './GameSettings';
 
 export interface GameState {
     isGameOver: boolean;
@@ -216,7 +216,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         const infectionTimeout = window.setTimeout(() => {
             console.log('Starting infection');
             const randomBall = ballsRef.current[Math.floor(Math.random() * ballsRef.current.length)];
-            randomBall.infect(settings.infectionDuration);
+            randomBall.infect();
         }, 2000);
         
         startGameLoop();

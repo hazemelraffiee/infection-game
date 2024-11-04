@@ -19,7 +19,7 @@ export class Ball {
     private vx: number;
     private vy: number;
     private readonly radius: number;
-    private readonly speedScale: number;
+    // private readonly speedScale: number;
     private readonly baseSpeed: number;
 
     // Visual state properties
@@ -34,9 +34,9 @@ export class Ball {
 
     // Constants
     private static readonly COLLISION_COOLDOWN = 100;
-    private static readonly BASE_MIN_ESCAPE_VELOCITY = 50;
-    private static readonly BASE_JITTER = 20;
-    private static readonly DAMPING = 0.95;
+    // private static readonly BASE_MIN_ESCAPE_VELOCITY = 50;
+    // private static readonly BASE_JITTER = 20;
+    // private static readonly DAMPING = 0.95;
     private static readonly INFECTION_DURATION = 5000;
 
     constructor({ x, y, vx, vy, radius, speedScale }: BallConfig) {
@@ -55,7 +55,7 @@ export class Ball {
         this.vx = normalizedVx;
         this.vy = normalizedVy;
         this.radius = radius;
-        this.speedScale = speedScale;
+        // this.speedScale = speedScale;
 
         // Initialize visual state
         this.color = 'green';
@@ -320,7 +320,7 @@ export class Ball {
         ctx.fill();
     }
 
-    public infect(duration: number = Ball.INFECTION_DURATION): void {
+    public infect(): void {
         this.color = 'red';
         this.infectedTime = Date.now();
         this.targetScale = 1.2;
