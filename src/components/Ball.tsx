@@ -1,4 +1,5 @@
 import { CurvyLine } from "./CurvyLine";
+import { ParticleSystem } from "./ParticleSystem";
 
 type BallColor = 'green' | 'red' | 'grey';
 type Dimensions = { width: number; height: number };
@@ -39,19 +40,21 @@ export class Ball {
     // private static readonly DAMPING = 0.95;
     private static readonly INFECTION_DURATION = 5000;
 
+    private particleSystem: ParticleSystem | null = null;
+
     constructor({ x, y, vx, vy, radius, speedScale }: BallConfig) {
         // Initialize position and physics
         this.x = x;
         this.y = y;
-        
+
         // Calculate and store base speed from initial velocity
         const initialSpeed = Math.hypot(vx, vy);
         this.baseSpeed = initialSpeed * speedScale;
-        
+
         // Normalize initial velocity to maintain constant speed
         const normalizedVx = (vx / initialSpeed) * this.baseSpeed;
         const normalizedVy = (vy / initialSpeed) * this.baseSpeed;
-        
+
         this.vx = normalizedVx;
         this.vy = normalizedVy;
         this.radius = radius;
@@ -66,14 +69,20 @@ export class Ball {
         // Initialize gameplay state
         this.infectedTime = null;
         this.lastCollisionTime = {};
+
+        this.particleSystem = null;  // Will be set by setParticleSystem
+    }
+
+    public setParticleSystem(particleSystem: ParticleSystem): void {
+        this.particleSystem = particleSystem;
     }
 
     private normalizeVelocity(): void {
         if (this.isDead()) return;
-        
+
         const currentSpeed = Math.hypot(this.vx, this.vy);
         if (currentSpeed === 0) return;  // Prevent division by zero
-        
+
         // Normalize to maintain constant base speed
         this.vx = (this.vx / currentSpeed) * this.baseSpeed;
         this.vy = (this.vy / currentSpeed) * this.baseSpeed;
@@ -83,13 +92,13 @@ export class Ball {
         if (this.isDead()) return;
 
         const originalState = this.saveState();
-        
+
         this.updatePosition(deltaTime);
         this.handleWallCollisions(dimensions);
         this.handleLineCollisions(lines, originalState);
         this.updateVisualEffects();
         this.checkInfectionStatus();
-        
+
         // Ensure speed remains constant after all updates
         this.normalizeVelocity();
     }
@@ -110,7 +119,7 @@ export class Ball {
 
     private handleWallCollisions(dimensions: Dimensions): void {
         let velocityChanged = false;
-        
+
         if (this.x + this.radius > dimensions.width || this.x - this.radius < 0) {
             this.vx *= -1;
             this.x = Math.max(this.radius, Math.min(this.x, dimensions.width - this.radius));
@@ -121,7 +130,7 @@ export class Ball {
             this.y = Math.max(this.radius, Math.min(this.y, dimensions.height - this.radius));
             velocityChanged = true;
         }
-        
+
         // Ensure constant speed after wall collisions
         if (velocityChanged) {
             this.normalizeVelocity();
@@ -144,8 +153,8 @@ export class Ball {
 
     private isCollisionInCooldown(lineIndex: number): boolean {
         const now = Date.now();
-        return this.lastCollisionTime[lineIndex] !== undefined && 
-               now - this.lastCollisionTime[lineIndex] < Ball.COLLISION_COOLDOWN;
+        return this.lastCollisionTime[lineIndex] !== undefined &&
+            now - this.lastCollisionTime[lineIndex] < Ball.COLLISION_COOLDOWN;
     }
 
     private handleCollisionCorrection(collision: any, originalState: any): boolean {
@@ -171,7 +180,7 @@ export class Ball {
         const dotProduct = this.vx * collision.normal.x + this.vy * collision.normal.y;
         this.vx = this.vx - 2 * dotProduct * collision.normal.x;
         this.vy = this.vy - 2 * dotProduct * collision.normal.y;
-        
+
         // Normalize velocity to maintain constant speed
         this.normalizeVelocity();
     }
@@ -214,22 +223,34 @@ export class Ball {
         // Handle infection spread
         if (this.isInfected() && !other.isInfected()) {
             other.infect();
+            // Add collision particles at the point of contact
+            if (this.particleSystem) {
+                const collisionX = (this.x + other.x) / 2;
+                const collisionY = (this.y + other.y) / 2;
+                this.particleSystem.addCollisionEffect(collisionX, collisionY, '#ff6b6b');
+            }
         } else if (!this.isInfected() && other.isInfected()) {
             this.infect();
+            // Add collision particles at the point of contact
+            if (this.particleSystem) {
+                const collisionX = (this.x + other.x) / 2;
+                const collisionY = (this.y + other.y) / 2;
+                this.particleSystem.addCollisionEffect(collisionX, collisionY, '#ff6b6b');
+            }
         }
 
         // Calculate collision response maintaining constant speeds for both balls
         const distance = Math.hypot(dx, dy);
         if (distance === 0) return;  // Prevent division by zero
-        
+
         // Normalized collision normal
         const nx = dx / distance;
         const ny = dy / distance;
-        
+
         // Apply collision response while maintaining each ball's original speed
         const thisSpeed = this.baseSpeed;
         const otherSpeed = other.baseSpeed;
-        
+
         // Calculate new velocities maintaining original speeds
         this.vx = nx * thisSpeed;
         this.vy = ny * thisSpeed;
@@ -242,13 +263,13 @@ export class Ball {
 
         // Calculate pulse factor
         const pulseFactor = this.calculatePulseFactor();
-        
+
         // Apply visual effects
         this.applyGlowEffect(ctx, pulseFactor);
-        
+
         // Draw main ball
         this.drawBallBody(ctx, pulseFactor);
-        
+
         // Add highlight
         this.drawHighlight(ctx);
 
@@ -321,15 +342,26 @@ export class Ball {
     }
 
     public infect(): void {
+        const wasAlreadyInfected = this.isInfected()
         this.color = 'red';
         this.infectedTime = Date.now();
         this.targetScale = 1.2;
+        if (!wasAlreadyInfected && this.particleSystem) {
+            this.particleSystem.addInfectionEffect(this.x, this.y);
+        }
     }
 
     public cure(): void {
-        this.color = 'green';
-        this.infectedTime = null;
-        this.targetScale = 1;
+        if (this.isInfected()) {  // Only emit particles if was infected
+            this.color = 'green';
+            this.infectedTime = null;
+            this.targetScale = 1;
+            
+            // Emit cure particles
+            if (this.particleSystem) {
+                this.particleSystem.addCureEffect(this.x, this.y);
+            }
+        }
     }
 
     public die(): void {

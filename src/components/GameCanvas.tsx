@@ -28,7 +28,7 @@ interface GameCanvasProps {
     onGameOver: () => void;
 }
 
-const initializeBalls = (dimensions: { width: number; height: number }, settings: GameSettings) => {
+const initializeBalls = (dimensions: { width: number; height: number }, settings: GameSettings, particleSystem: ParticleSystem) => {
     const balls: Ball[] = [];
     const BASE_SPEED = 150;
 
@@ -45,6 +45,7 @@ const initializeBalls = (dimensions: { width: number; height: number }, settings
             radius: settings.ballRadius,
             speedScale: settings.speedScale
         });
+        ball.setParticleSystem(particleSystem);  // Connect particle system to ball
         ball.cure();
         balls.push(ball);
     }
@@ -164,7 +165,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         if (!ctx) return;
 
         ctxRef.current = ctx;
-        ballsRef.current = initializeBalls(dimensions, settings);
+        particleSystemRef.current = new ParticleSystem();  // Initialize particle system first
+        ballsRef.current = initializeBalls(dimensions, settings, particleSystemRef.current);  // Pass particle system to balls
         lastTimeRef.current = performance.now();
         requestIdRef.current = requestAnimationFrame(gameLoop);
 
@@ -188,7 +190,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             canvasRef.current.height = height;
 
             // Reinitialize balls on resize
-            ballsRef.current = initializeBalls({ width, height }, settings);
+            ballsRef.current = initializeBalls({ width, height }, settings, particleSystemRef.current);
         };
 
         window.addEventListener('resize', handleResize);
@@ -204,7 +206,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             linesRef.current = [];
             currentLineRef.current = null;
             isDrawingRef.current = false;
+            
+            // Create new particle system and reconnect to balls
             particleSystemRef.current = new ParticleSystem();
+            ballsRef.current.forEach(ball => ball.setParticleSystem(particleSystemRef.current));
             
             // Make sure all balls are healthy at game start
             ballsRef.current.forEach(ball => ball.cure());
@@ -217,14 +222,9 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
                 }
             }, 2000);
     
-            // Reset the flag after handling
-            if (gameState.shouldResetLines) {
-                setGameState(prev => ({ ...prev, shouldResetLines: false }));
-            }
-    
             return () => clearTimeout(infectionTimeout);
         }
-    }, [gameState.infectionStarted, gameState.shouldResetLines]);
+    }, [gameState.infectionStarted]);
 
     // Input handlers
     const getInputPos = useCallback((evt: React.TouchEvent | React.MouseEvent) => {
