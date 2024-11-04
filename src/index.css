@@ -17,14 +17,16 @@
 html {
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 body {
   width: 100%;
-  height: 100%;
-  background-color: #242424;
-  position: fixed;
+  height: 100dvh; /* Use dynamic viewport height */
   overflow: hidden;
+  position: fixed; /* Prevent mobile browser chrome from affecting layout */
+  top: 0;
+  left: 0;
 }
 
 #root {
