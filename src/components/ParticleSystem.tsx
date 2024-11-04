@@ -16,7 +16,7 @@ export class ParticleSystem {
     private particles: Particle[];
     private readonly PARTICLE_LIFETIME = 1.0;
     private readonly PARTICLE_DECAY = 0.02;
-    private readonly PARTICLE_COUNT = 12;
+    private readonly PARTICLE_COUNT = 6;
     private readonly PARTICLE_SPEED = 5;
     private readonly PARTICLE_SIZE = 3;
 

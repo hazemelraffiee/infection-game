@@ -1,25 +1,8 @@
+// GameCanvas.tsx
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Ball } from './Ball';
-import { CurvyLine } from './CurvyLine';
-import { ParticleSystem } from './ParticleSystem';
-import { GameSettings } from './GameSettings';
+import { GameInstance } from './GameInstance';
+import { Dimensions, GameSettings, GameState } from './types';
 
-export interface GameState {
-    isGameOver: boolean;
-    infectionStarted: boolean;
-    currentScore: number;
-    gameStartTime: number | null;
-    gameEndTime: number | null;
-    highScores: LeaderboardEntry[];
-    bestTimes: LeaderboardEntry[];
-    shouldResetLines?: boolean;
-}
-
-export interface LeaderboardEntry {
-    playerName: string;
-    value: number;
-    date: string;
-}
 
 interface GameCanvasProps {
     gameState: GameState;
@@ -27,30 +10,6 @@ interface GameCanvasProps {
     settings: GameSettings;
     onGameOver: () => void;
 }
-
-const initializeBalls = (dimensions: { width: number; height: number }, settings: GameSettings, particleSystem: ParticleSystem) => {
-    const balls: Ball[] = [];
-    const BASE_SPEED = 150;
-
-    for (let i = 0; i < settings.ballCount; i++) {
-        const x = Math.random() * (dimensions.width - 2 * settings.ballRadius) + settings.ballRadius;
-        const y = Math.random() * (dimensions.height - 2 * settings.ballRadius) + settings.ballRadius;
-        const angle = Math.random() * 2 * Math.PI;
-
-        const vx = Math.cos(angle) * BASE_SPEED;
-        const vy = Math.sin(angle) * BASE_SPEED;
-
-        const ball = new Ball({
-            x, y, vx, vy,
-            radius: settings.ballRadius,
-            speedScale: settings.speedScale
-        });
-        ball.setParticleSystem(particleSystem);  // Connect particle system to ball
-        ball.cure();
-        balls.push(ball);
-    }
-    return balls;
-};
 
 export const GameCanvas: React.FC<GameCanvasProps> = ({
     gameState,
@@ -61,102 +20,52 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
     const requestIdRef = useRef<number>();
-    const ballsRef = useRef<Ball[]>([]);
-    const linesRef = useRef<CurvyLine[]>([]);
-    const currentLineRef = useRef<CurvyLine | null>(null);
-    const isDrawingRef = useRef(false);
-    const particleSystemRef = useRef<ParticleSystem>(new ParticleSystem());
+    const gameInstanceRef = useRef<GameInstance | null>(null);
     const lastTimeRef = useRef<number>(performance.now());
+    const infectionTimeoutRef = useRef<number>();
 
-    const [dimensions, setDimensions] = useState({
+    const [dimensions, setDimensions] = useState<Dimensions>({
         width: window.innerWidth,
         height: window.innerHeight
     });
 
+    // Initialize or reset game instance
+    const resetGame = useCallback(() => {
+        if (!gameInstanceRef.current) {
+            gameInstanceRef.current = new GameInstance(dimensions, settings);
+        } else {
+            gameInstanceRef.current.reset();
+        }
+    }, [dimensions, settings]);
+
+    // Game loop
     const gameLoop = useCallback(() => {
-        if (!ctxRef.current) return;
+        if (!ctxRef.current || !gameInstanceRef.current) return;
 
         const now = performance.now();
         const deltaTime = (now - lastTimeRef.current) / 1000;
         lastTimeRef.current = now;
 
-        const ctx = ctxRef.current;
-
-        // Clear canvas with gradient background
-        const gradient = ctx.createLinearGradient(0, 0, dimensions.width, dimensions.height);
-        gradient.addColorStop(0, '#e0f7fa');
-        gradient.addColorStop(1, '#b2ebf2');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, dimensions.width, dimensions.height);
-
-        // Update and draw particle system if game is active
-        if (gameState.infectionStarted && !gameState.isGameOver) {
-            particleSystemRef.current.update();
-            particleSystemRef.current.draw(ctx);
-        }
-
-        // Always update balls
-        ballsRef.current.forEach(ball => {
-            if (gameState.infectionStarted && !gameState.isGameOver) {
-                ball.update(deltaTime, dimensions, linesRef.current);
-            } else {
-                ball.update(deltaTime, dimensions, []); // No line collisions in background mode
-            }
-        });
-
-        // Always check ball collisions
-        for (let i = 0; i < ballsRef.current.length; i++) {
-            for (let j = i + 1; j < ballsRef.current.length; j++) {
-                ballsRef.current[i].checkCollisionWith(ballsRef.current[j]);
-            }
-        }
-
-        // Add darkening overlay if in background state
+        const isActive = gameState.infectionStarted && !gameState.isGameOver;
         const isBackgroundState = !gameState.infectionStarted || gameState.isGameOver;
-        if (isBackgroundState) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fillRect(0, 0, dimensions.width, dimensions.height);
-        }
 
-        // Draw in layers
-        // 1. Dead balls
-        ballsRef.current.forEach(ball => {
-            if (ball.isDead()) ball.draw(ctx);
-        });
-
-        // 2. Lines (only in active gameplay)
-        if (!isBackgroundState) {
-            linesRef.current.forEach(line => line.draw(ctx));
-            if (currentLineRef.current) {
-                currentLineRef.current.draw(ctx);
-            }
-        }
-
-        // 3. Active balls
-        ballsRef.current.forEach(ball => {
-            if (!ball.isDead()) ball.draw(ctx);
-        });
+        gameInstanceRef.current.update(deltaTime, isActive);
+        gameInstanceRef.current.draw(ctxRef.current, isBackgroundState);
 
         // Check game end condition
-        if (gameState.infectionStarted && !gameState.isGameOver) {
-            const hasInfectedBalls = ballsRef.current.some(ball => ball.isInfected());
-            const hasSomeDead = ballsRef.current.some(ball => ball.isDead());
-            
-            // End condition: either some balls died, or achieved perfect score
-            const isGameOver = !hasInfectedBalls && (hasSomeDead || gameState.gameStartTime && Date.now() - gameState.gameStartTime > 7000);
-
-            if (isGameOver) {
-                const score = ballsRef.current.filter(ball => !ball.isDead()).length;
-                setGameState(prev => ({ ...prev, currentScore: score }));
+        if (isActive) {
+            const { isOver, survivors } = gameInstanceRef.current.checkGameOver();
+            if (isOver) {
+                setGameState(prev => ({ ...prev, currentScore: survivors }));
                 onGameOver();
                 return;
             }
         }
 
         requestIdRef.current = requestAnimationFrame(gameLoop);
-    }, [dimensions, gameState.infectionStarted, gameState.isGameOver, onGameOver]);
+    }, [gameState.infectionStarted, gameState.isGameOver, onGameOver, setGameState]);
 
-    // Initialize everything
+    // Initialize canvas and game instance
     useEffect(() => {
         if (!canvasRef.current) return;
 
@@ -165,8 +74,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         if (!ctx) return;
 
         ctxRef.current = ctx;
-        particleSystemRef.current = new ParticleSystem();  // Initialize particle system first
-        ballsRef.current = initializeBalls(dimensions, settings, particleSystemRef.current);  // Pass particle system to balls
+        resetGame();
         lastTimeRef.current = performance.now();
         requestIdRef.current = requestAnimationFrame(gameLoop);
 
@@ -175,12 +83,12 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
                 cancelAnimationFrame(requestIdRef.current);
             }
         };
-    }, [dimensions, settings, gameLoop]);
+    }, [dimensions, settings, gameLoop, resetGame]);
 
     // Handle resize
     useEffect(() => {
         const handleResize = () => {
-            if (!canvasRef.current) return;
+            if (!canvasRef.current || !gameInstanceRef.current) return;
 
             const width = window.innerWidth;
             const height = window.innerHeight;
@@ -188,9 +96,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             setDimensions({ width, height });
             canvasRef.current.width = width;
             canvasRef.current.height = height;
-
-            // Reinitialize balls on resize
-            ballsRef.current = initializeBalls({ width, height }, settings, particleSystemRef.current);
+            gameInstanceRef.current.resize({ width, height });
         };
 
         window.addEventListener('resize', handleResize);
@@ -199,37 +105,33 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         return () => window.removeEventListener('resize', handleResize);
     }, [settings]);
 
-    // Handle game state changes
+    // Handle game state changes and infection start
     useEffect(() => {
-        if (gameState.infectionStarted) {
-            // Clear all lines
-            linesRef.current = [];
-            currentLineRef.current = null;
-            isDrawingRef.current = false;
-            
-            // Create new particle system and reconnect to balls
-            particleSystemRef.current = new ParticleSystem();
-            ballsRef.current.forEach(ball => ball.setParticleSystem(particleSystemRef.current));
-            
-            // Make sure all balls are healthy at game start
-            ballsRef.current.forEach(ball => ball.cure());
+        // Clear any existing timeout
+        if (infectionTimeoutRef.current) {
+            window.clearTimeout(infectionTimeoutRef.current);
+        }
     
-            // Start infection after delay
-            const infectionTimeout = window.setTimeout(() => {
-                if (ballsRef.current.length > 0) {
-                    const randomBall = ballsRef.current[Math.floor(Math.random() * ballsRef.current.length)];
-                    randomBall.infect();
+        if (gameState.infectionStarted && gameInstanceRef.current) {
+            resetGame();
+            infectionTimeoutRef.current = window.setTimeout(() => {
+                if (gameInstanceRef.current) {
+                    gameInstanceRef.current.startInfection();
                 }
             }, 2000);
-    
-            return () => clearTimeout(infectionTimeout);
         }
-    }, [gameState.infectionStarted]);
+    
+        return () => {
+            if (infectionTimeoutRef.current) {
+                window.clearTimeout(infectionTimeoutRef.current);
+            }
+        };
+    }, [gameState.infectionStarted, resetGame]);
 
     // Input handlers
     const getInputPos = useCallback((evt: React.TouchEvent | React.MouseEvent) => {
         if (!canvasRef.current) return null;
-        
+
         const rect = canvasRef.current.getBoundingClientRect();
         const event = 'touches' in evt ? evt.touches[0] : evt;
         return {
@@ -240,44 +142,29 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
     const handleStart = useCallback((evt: React.TouchEvent | React.MouseEvent) => {
         evt.preventDefault();
-        if (!gameState.infectionStarted || gameState.isGameOver) return;
+        if (!gameState.infectionStarted || gameState.isGameOver || !gameInstanceRef.current) return;
 
         const pos = getInputPos(evt);
         if (!pos) return;
 
-        isDrawingRef.current = true;
-        currentLineRef.current = new CurvyLine();
-        currentLineRef.current.addPoint(pos.x, pos.y);
+        gameInstanceRef.current.startLine(pos.x, pos.y);
     }, [gameState.infectionStarted, gameState.isGameOver, getInputPos]);
 
     const handleMove = useCallback((evt: React.TouchEvent | React.MouseEvent) => {
         evt.preventDefault();
-        if (!isDrawingRef.current || !currentLineRef.current) return;
+        if (!gameInstanceRef.current) return;
 
         const pos = getInputPos(evt);
         if (!pos) return;
 
-        currentLineRef.current.addPoint(pos.x, pos.y);
-
-        const touchingActiveBall = ballsRef.current.some(ball =>
-            !ball.isDead() && currentLineRef.current?.collidesWithBall(ball)
-        );
-
-        if (touchingActiveBall) {
-            isDrawingRef.current = false;
-            currentLineRef.current = null;
-        }
+        gameInstanceRef.current.updateLine(pos.x, pos.y);
     }, [getInputPos]);
 
     const handleEnd = useCallback((evt: React.TouchEvent | React.MouseEvent) => {
         evt.preventDefault();
-        if (!isDrawingRef.current || !currentLineRef.current) return;
+        if (!gameInstanceRef.current) return;
 
-        currentLineRef.current.complete();
-        linesRef.current.push(currentLineRef.current);
-
-        isDrawingRef.current = false;
-        currentLineRef.current = null;
+        gameInstanceRef.current.endLine();
     }, []);
 
     return (

@@ -1,17 +1,9 @@
 import { CurvyLine } from "./CurvyLine";
 import { ParticleSystem } from "./ParticleSystem";
+import { BallConfig } from "./types";
 
 type BallColor = 'green' | 'red' | 'grey';
 type Dimensions = { width: number; height: number };
-
-interface BallConfig {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    radius: number;
-    speedScale: number;
-}
 
 export class Ball {
     // Position and physics properties

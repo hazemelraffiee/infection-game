@@ -1,12 +1,5 @@
 import { useState, useEffect } from 'react';
-
-export interface GameSettings {
-    ballCount: number;
-    ballRadius: number;
-    infectionDuration: number;
-    leaderboardSize: number;
-    speedScale: number;
-}
+import { GameSettings } from './types';
 
 export const BASE_SETTINGS = {
     infectionDuration: 10 * 1000,

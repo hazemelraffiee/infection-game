@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Play, Star, Timer } from 'lucide-react';
-import { LeaderboardEntry } from './GameCanvas';
+import { LeaderboardEntry } from './types';
 
 interface GameOverScreenProps {
     currentScore: number;

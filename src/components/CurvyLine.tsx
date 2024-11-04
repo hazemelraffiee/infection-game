@@ -1,19 +1,5 @@
 import { Ball } from './Ball';
-
-interface Point {
-    x: number;
-    y: number;
-}
-
-interface CollisionInfo {
-    collides: boolean;
-    normal: {
-        x: number;
-        y: number;
-    };
-    correctedX: number;
-    correctedY: number;
-}
+import { CollisionInfo, Point } from './types';
 
 export class CurvyLine {
     private readonly points: Point[];
