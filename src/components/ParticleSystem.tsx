@@ -1,3 +1,5 @@
+import { Point } from "./types";
+
 interface Particle {
     x: number;
     y: number;
@@ -43,6 +45,26 @@ export class ParticleSystem {
                 rotationSpeed: (Math.random() - 0.5) * 0.2
             });
         }
+    }
+
+    public addLineDisappearanceEffect(points: Point[], color: string): void {
+        points.forEach(point => {
+            for (let i = 0; i < 2; i++) { // Adjust the number for effect intensity
+                this.particles.push({
+                    x: point.x,
+                    y: point.y,
+                    color,
+                    velocity: {
+                        x: (Math.random() - 0.5) * this.PARTICLE_SPEED,
+                        y: (Math.random() - 0.5) * this.PARTICLE_SPEED
+                    },
+                    life: this.PARTICLE_LIFETIME,
+                    scale: 0.5 + Math.random() * 0.5,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.1
+                });
+            }
+        });
     }
 
     public update(): void {

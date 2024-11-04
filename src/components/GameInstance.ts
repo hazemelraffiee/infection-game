@@ -50,10 +50,10 @@ export class GameInstance {
         this.currentLine = null;
         this.isDrawing = false;
         this.hasStartedInfection = false;
-        
+
         // Create new particle system
         this.particleSystem = new ParticleSystem();
-        
+
         // Reinitialize balls
         this.initializeBalls();
     }
@@ -92,17 +92,28 @@ export class GameInstance {
                 this.balls[i].checkCollisionWith(this.balls[j]);
             }
         }
+
+        // Update lines
+        this.lines = this.lines.filter(line => {
+            if (line.isDisappearing) {
+                line.update(deltaTime);
+                if (line.isFullyDisappeared()) {
+                    return false; // Remove the line
+                }
+            }
+            return true;
+        });
     }
 
     public draw(ctx: CanvasRenderingContext2D, isBackgroundState: boolean): void {
         this.drawBackground(ctx);
-        
+
         if (!isBackgroundState) {
             this.particleSystem.draw(ctx);
         }
 
         this.drawGameElements(ctx, isBackgroundState);
-        
+
         if (isBackgroundState) {
             this.drawDarkeningOverlay(ctx);
         }
@@ -158,7 +169,18 @@ export class GameInstance {
 
         if (touchingActiveBall) {
             this.isDrawing = false;
+
+            // Start the disappearing effect
+            this.currentLine.startDisappearing();
+            
+            // Add particle effects along the line
+            if (this.particleSystem) {
+                this.particleSystem.addLineDisappearanceEffect(this.currentLine.getPoints(), '#ff6b6b');
+            }
+
+            this.lines.push(this.currentLine);
             this.currentLine = null;
+
             return true;
         }
         return false;
@@ -185,7 +207,7 @@ export class GameInstance {
         const hasInfectedBalls = this.balls.some(ball => ball.isInfected());
         const hasSomeDead = this.balls.some(ball => ball.isDead());
         const survivors = this.balls.filter(ball => !ball.isDead()).length;
-        
+
         // Game is over only when there are no more infected balls AND
         // either some balls have died or we've saved everyone
         return {
