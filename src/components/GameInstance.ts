@@ -12,7 +12,6 @@ export class GameInstance {
     private isDrawing: boolean = false;
     private dimensions: Dimensions;
     private readonly settings: GameSettings;
-    private static readonly BASE_SPEED = 150;
     private hasStartedInfection: boolean = false;
 
     constructor(dimensions: Dimensions, settings: GameSettings) {
