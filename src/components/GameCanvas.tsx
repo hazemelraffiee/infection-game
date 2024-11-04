@@ -31,11 +31,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
     // Initialize or reset game instance
     const resetGame = useCallback(() => {
-        if (!gameInstanceRef.current) {
-            gameInstanceRef.current = new GameInstance(dimensions, settings);
-        } else {
-            gameInstanceRef.current.reset();
-        }
+        gameInstanceRef.current = new GameInstance(dimensions, settings);
     }, [dimensions, settings]);
 
     // Game loop
@@ -68,22 +64,22 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     // Initialize canvas and game instance
     useEffect(() => {
         if (!canvasRef.current) return;
-
+    
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-
+    
         ctxRef.current = ctx;
         resetGame();
         lastTimeRef.current = performance.now();
         requestIdRef.current = requestAnimationFrame(gameLoop);
-
+    
         return () => {
             if (requestIdRef.current) {
                 cancelAnimationFrame(requestIdRef.current);
             }
         };
-    }, [dimensions, settings, gameLoop, resetGame]);
+    }, [dimensions, settings, gameLoop, resetGame]);    
 
     // Handle resize
     useEffect(() => {

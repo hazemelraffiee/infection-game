@@ -7,8 +7,10 @@ export const BASE_SETTINGS = {
     ballCount: 30, // Fixed ball count
     // Base values for a laptop screen (1366x768)
     baseScreenArea: 1366 * 768,
-    baseBallRadius: 30,
+    baseBallRadius: 40, // Adjusted base radius for better scaling
     baseSpeed: 150,
+    minSpeedScale: 0.3, // Minimum speed scale (30% of base speed)
+    maxSpeedScale: 1.5, // Maximum speed scale (150% of base speed)
 };
 
 export const useGameSettings = () => {
@@ -22,18 +24,22 @@ export const useGameSettings = () => {
 
     useEffect(() => {
         const updateSettings = () => {
-            // Calculate current screen area ratio compared to base laptop screen
             const currentArea = window.innerWidth * window.innerHeight;
-            const areaRatio = Math.sqrt(currentArea / BASE_SETTINGS.baseScreenArea);
+            const areaRatio = currentArea / BASE_SETTINGS.baseScreenArea;
+            const lengthScale = Math.sqrt(areaRatio);
 
-            // Calculate new ball radius and speed scale
-            const scaledBallRadius = Math.round(BASE_SETTINGS.baseBallRadius * Math.sqrt(areaRatio));
-            const speedScale = Math.sqrt(areaRatio);  // Scale speed similarly to radius
+            // Adjust ball radius with limits
+            let scaledBallRadius = Math.round(BASE_SETTINGS.baseBallRadius * lengthScale);
+            
+            // Adjust speed scale inversely for smaller screens
+            let speedScale = Math.pow(lengthScale, 0.8); // Adjust exponent as needed
+            speedScale = Math.max(BASE_SETTINGS.minSpeedScale, Math.min(BASE_SETTINGS.maxSpeedScale, speedScale));
 
             // For debugging
             console.log('Screen size:', window.innerWidth, 'x', window.innerHeight);
             console.log('Area ratio:', areaRatio);
-            console.log('New ball radius:', scaledBallRadius);
+            console.log('Length scale:', lengthScale);
+            console.log('Scaled ball radius:', scaledBallRadius);
             console.log('Speed scale:', speedScale);
 
             setSettings(prev => {

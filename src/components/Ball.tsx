@@ -34,21 +34,18 @@ export class Ball {
 
     private particleSystem: ParticleSystem | null = null;
 
-    constructor({ x, y, vx, vy, radius, speedScale }: BallConfig) {
+    constructor({ x, y, vx, vy, radius, speedScale, baseSpeed }: BallConfig) {
         // Initialize position and physics
         this.x = x;
         this.y = y;
 
-        // Calculate and store base speed from initial velocity
-        const initialSpeed = Math.hypot(vx, vy);
-        this.baseSpeed = initialSpeed * speedScale;
+        this.baseSpeed = baseSpeed * speedScale;
 
         // Normalize initial velocity to maintain constant speed
-        const normalizedVx = (vx / initialSpeed) * this.baseSpeed;
-        const normalizedVy = (vy / initialSpeed) * this.baseSpeed;
+        const magnitude = Math.hypot(vx, vy) || 1; // Avoid division by zero
+        this.vx = (vx / magnitude) * this.baseSpeed;
+        this.vy = (vy / magnitude) * this.baseSpeed;
 
-        this.vx = normalizedVx;
-        this.vy = normalizedVy;
         this.radius = radius;
         // this.speedScale = speedScale;
 

@@ -32,6 +32,7 @@ export interface BallConfig {
     vy: number;
     radius: number;
     speedScale: number;
+    baseSpeed: number;
 }
 
 export interface Point {

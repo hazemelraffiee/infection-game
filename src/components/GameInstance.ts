@@ -1,5 +1,6 @@
 import { Ball } from './Ball';
 import { CurvyLine } from './CurvyLine';
+import { BASE_SETTINGS } from './GameSettings';
 import { ParticleSystem } from './ParticleSystem';
 import { Dimensions, GameSettings, GameOverState } from './types';
 
@@ -24,19 +25,23 @@ export class GameInstance {
     private initializeBalls(): void {
         this.balls = [];
         this.hasStartedInfection = false;
-
+    
         for (let i = 0; i < this.settings.ballCount; i++) {
             const x = Math.random() * (this.dimensions.width - 2 * this.settings.ballRadius) + this.settings.ballRadius;
             const y = Math.random() * (this.dimensions.height - 2 * this.settings.ballRadius) + this.settings.ballRadius;
             const angle = Math.random() * 2 * Math.PI;
-
-            const vx = Math.cos(angle) * GameInstance.BASE_SPEED;
-            const vy = Math.sin(angle) * GameInstance.BASE_SPEED;
-
+    
+            const vx = Math.cos(angle);
+            const vy = Math.sin(angle);
+    
             const ball = new Ball({
-                x, y, vx, vy,
+                x,
+                y,
+                vx,
+                vy,
                 radius: this.settings.ballRadius,
-                speedScale: this.settings.speedScale
+                speedScale: this.settings.speedScale,
+                baseSpeed: BASE_SETTINGS.baseSpeed, // Pass base speed
             });
             ball.setParticleSystem(this.particleSystem);
             ball.cure(); // Start as healthy
