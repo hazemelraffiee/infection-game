@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface NameInputDialogProps {
     score: number;
@@ -32,6 +32,30 @@ const NameInputDialog: React.FC<NameInputDialogProps> = ({
     if (score > 0) achievements.push('High Score');
     if (time > 0) achievements.push('Best Time');
 
+    // Add keydown event listener to capture physical keyboard input
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            const { key } = event;
+
+            if (key === 'Backspace') {
+                setName(prev => prev.slice(0, -1));
+                event.preventDefault(); // Prevent default backspace behavior
+            } else if (key.length === 1 && name.length < 20) {
+                // Check if key is a printable character
+                const isPrintableChar = /^[a-zA-ZäöüÄÖÜß]$/i.test(key);
+                if (isPrintableChar) {
+                    setName(prev => prev + key.toUpperCase());
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [name]);
+
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="fixed inset-0 bg-black/70" />
@@ -57,12 +81,12 @@ const NameInputDialog: React.FC<NameInputDialogProps> = ({
                         value={name}
                         readOnly
                         className="w-full px-4 py-3 rounded-xl 
-                                 border-2 border-blue-400 
-                                 bg-white
-                                 text-gray-800 text-xl tracking-wide
-                                 shadow-inner"
+                                     border-2 border-blue-400 
+                                     bg-white
+                                     text-gray-800 text-xl tracking-wide
+                                     shadow-inner"
                         maxLength={20}
-                        placeholder="Type using the keyboard below"
+                        placeholder="Type using the keyboard below or your physical keyboard"
                     />
                 </div>
 
@@ -114,16 +138,16 @@ const NameInputDialog: React.FC<NameInputDialogProps> = ({
                 <button
                     onClick={() => onSubmit(name || 'Anonymous')}
                     className="mt-8 w-full 
-                             bg-gradient-to-b from-emerald-500 to-emerald-600 
-                             hover:from-emerald-400 hover:to-emerald-500
-                             active:from-emerald-600 active:to-emerald-700
-                             text-white rounded-full py-3.5 px-6
-                             font-bold text-lg
-                             shadow-lg
-                             transition-all duration-300
-                             hover:shadow-xl hover:-translate-y-0.5
-                             active:translate-y-0 active:shadow-md
-                             focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                                 bg-gradient-to-b from-emerald-500 to-emerald-600 
+                                 hover:from-emerald-400 hover:to-emerald-500
+                                 active:from-emerald-600 active:to-emerald-700
+                                 text-white rounded-full py-3.5 px-6
+                                 font-bold text-lg
+                                 shadow-lg
+                                 transition-all duration-300
+                                 hover:shadow-xl hover:-translate-y-0.5
+                                 active:translate-y-0 active:shadow-md
+                                 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                 >
                     Submit
                 </button>

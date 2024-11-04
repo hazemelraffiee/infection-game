@@ -35,13 +35,6 @@ export const useGameSettings = () => {
             let speedScale = Math.pow(lengthScale, 0.8); // Adjust exponent as needed
             speedScale = Math.max(BASE_SETTINGS.minSpeedScale, Math.min(BASE_SETTINGS.maxSpeedScale, speedScale));
 
-            // For debugging
-            console.log('Screen size:', window.innerWidth, 'x', window.innerHeight);
-            console.log('Area ratio:', areaRatio);
-            console.log('Length scale:', lengthScale);
-            console.log('Scaled ball radius:', scaledBallRadius);
-            console.log('Speed scale:', speedScale);
-
             setSettings(prev => {
                 if (prev.ballRadius === scaledBallRadius && prev.speedScale === speedScale) {
                     return prev;
