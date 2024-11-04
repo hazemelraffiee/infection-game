@@ -2,8 +2,6 @@
 
 A fast-paced, interactive web game where players must contain infections by drawing lines on the screen. Save as many lives as possible by strategically isolating infected entities from healthy ones!
 
-![Infection Game Screenshot](screenshot.png)
-
 🎮 [Play Now](https://hazemelraffiee.github.io/infection-game/)
 
 ## 🚀 Getting Started
