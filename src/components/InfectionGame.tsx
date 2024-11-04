@@ -115,7 +115,8 @@ export const InfectionGame = () => {
             infectionStarted: true,
             gameStartTime: Date.now(),
             currentScore: 0,
-            gameEndTime: null
+            gameEndTime: null,
+            shouldResetLines: true
         }));
     };
 

@@ -12,6 +12,7 @@ export interface GameState {
     gameEndTime: number | null;
     highScores: LeaderboardEntry[];
     bestTimes: LeaderboardEntry[];
+    shouldResetLines?: boolean;
 }
 
 export interface LeaderboardEntry {
@@ -26,6 +27,29 @@ interface GameCanvasProps {
     settings: GameSettings;
     onGameOver: () => void;
 }
+
+const initializeBalls = (dimensions: { width: number; height: number }, settings: GameSettings) => {
+    const balls: Ball[] = [];
+    const BASE_SPEED = 150;
+
+    for (let i = 0; i < settings.ballCount; i++) {
+        const x = Math.random() * (dimensions.width - 2 * settings.ballRadius) + settings.ballRadius;
+        const y = Math.random() * (dimensions.height - 2 * settings.ballRadius) + settings.ballRadius;
+        const angle = Math.random() * 2 * Math.PI;
+
+        const vx = Math.cos(angle) * BASE_SPEED;
+        const vy = Math.sin(angle) * BASE_SPEED;
+
+        const ball = new Ball({
+            x, y, vx, vy,
+            radius: settings.ballRadius,
+            speedScale: settings.speedScale
+        });
+        ball.cure();
+        balls.push(ball);
+    }
+    return balls;
+};
 
 export const GameCanvas: React.FC<GameCanvasProps> = ({
     gameState,
@@ -48,24 +72,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         height: window.innerHeight
     });
 
-    // Define gameLoop first
     const gameLoop = useCallback(() => {
-        if (!ctxRef.current || gameState.isGameOver) {
-            console.log('Game loop stopping:', {
-                hasContext: !!ctxRef.current,
-                isGameOver: gameState.isGameOver
-            });
-            return;
-        }
-
-        // Debug ball positions and velocities
-        if (Math.random() < 0.01) { // Log only occasionally to avoid spam
-            console.log('Ball states:', ballsRef.current.map(ball => ({
-                pos: ball.getPosition(),
-                infected: ball.isInfected(),
-                dead: ball.isDead()
-            })));
-        }
+        if (!ctxRef.current) return;
 
         const now = performance.now();
         const deltaTime = (now - lastTimeRef.current) / 1000;
@@ -80,20 +88,33 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, dimensions.width, dimensions.height);
 
-        // Update particle system
-        particleSystemRef.current.update();
-        particleSystemRef.current.draw(ctx);
+        // Update and draw particle system if game is active
+        if (gameState.infectionStarted && !gameState.isGameOver) {
+            particleSystemRef.current.update();
+            particleSystemRef.current.draw(ctx);
+        }
 
-        // Update all balls
+        // Always update balls
         ballsRef.current.forEach(ball => {
-            ball.update(deltaTime, dimensions, linesRef.current);
+            if (gameState.infectionStarted && !gameState.isGameOver) {
+                ball.update(deltaTime, dimensions, linesRef.current);
+            } else {
+                ball.update(deltaTime, dimensions, []); // No line collisions in background mode
+            }
         });
 
-        // Check collisions between balls
+        // Always check ball collisions
         for (let i = 0; i < ballsRef.current.length; i++) {
             for (let j = i + 1; j < ballsRef.current.length; j++) {
                 ballsRef.current[i].checkCollisionWith(ballsRef.current[j]);
             }
+        }
+
+        // Add darkening overlay if in background state
+        const isBackgroundState = !gameState.infectionStarted || gameState.isGameOver;
+        if (isBackgroundState) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, dimensions.width, dimensions.height);
         }
 
         // Draw in layers
@@ -102,10 +123,12 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             if (ball.isDead()) ball.draw(ctx);
         });
 
-        // 2. Lines
-        linesRef.current.forEach(line => line.draw(ctx));
-        if (currentLineRef.current) {
-            currentLineRef.current.draw(ctx);
+        // 2. Lines (only in active gameplay)
+        if (!isBackgroundState) {
+            linesRef.current.forEach(line => line.draw(ctx));
+            if (currentLineRef.current) {
+                currentLineRef.current.draw(ctx);
+            }
         }
 
         // 3. Active balls
@@ -114,122 +137,94 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         });
 
         // Check game end condition
-        const hasInfectedBalls = ballsRef.current.some(ball => ball.isInfected());
-        const allSettled = !hasInfectedBalls && ballsRef.current.some(ball => ball.isDead());
-        
-        if (allSettled && !gameState.isGameOver) {
-            console.log('Game ending because:', {
-                hasInfectedBalls,
-                ballStates: ballsRef.current.map(ball => ({
-                    infected: ball.isInfected(),
-                    dead: ball.isDead()
-                }))
-            });
-            const score = ballsRef.current.filter(ball => !ball.isDead()).length;
-            setGameState(prev => ({ ...prev, currentScore: score }));
-            onGameOver();
-            return;
+        if (gameState.infectionStarted && !gameState.isGameOver) {
+            const hasInfectedBalls = ballsRef.current.some(ball => ball.isInfected());
+            const hasSomeDead = ballsRef.current.some(ball => ball.isDead());
+            
+            // End condition: either some balls died, or achieved perfect score
+            const isGameOver = !hasInfectedBalls && (hasSomeDead || gameState.gameStartTime && Date.now() - gameState.gameStartTime > 7000);
+
+            if (isGameOver) {
+                const score = ballsRef.current.filter(ball => !ball.isDead()).length;
+                setGameState(prev => ({ ...prev, currentScore: score }));
+                onGameOver();
+                return;
+            }
         }
 
         requestIdRef.current = requestAnimationFrame(gameLoop);
-    }, [dimensions, gameState.isGameOver, onGameOver]);
+    }, [dimensions, gameState.infectionStarted, gameState.isGameOver, onGameOver]);
 
-    // Then define startGameLoop
-    const startGameLoop = useCallback(() => {
-        console.log('Starting game loop');
-        lastTimeRef.current = performance.now();
-        requestIdRef.current = requestAnimationFrame(gameLoop);
-    }, [gameLoop]);
-
-    // Initialize canvas context
+    // Initialize everything
     useEffect(() => {
         if (!canvasRef.current) return;
-        
+
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-        
+
         ctxRef.current = ctx;
-        
+        ballsRef.current = initializeBalls(dimensions, settings);
+        lastTimeRef.current = performance.now();
+        requestIdRef.current = requestAnimationFrame(gameLoop);
+
         return () => {
             if (requestIdRef.current) {
                 cancelAnimationFrame(requestIdRef.current);
             }
         };
-    }, []);
+    }, [dimensions, settings, gameLoop]);
 
     // Handle resize
     useEffect(() => {
         const handleResize = () => {
             if (!canvasRef.current) return;
-            
+
             const width = window.innerWidth;
             const height = window.innerHeight;
-            
+
             setDimensions({ width, height });
             canvasRef.current.width = width;
             canvasRef.current.height = height;
+
+            // Reinitialize balls on resize
+            ballsRef.current = initializeBalls({ width, height }, settings);
         };
 
         window.addEventListener('resize', handleResize);
         handleResize();
 
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [settings]);
 
-    // Initialize balls and start game loop
+    // Handle game state changes
     useEffect(() => {
-        if (!gameState.infectionStarted || gameState.isGameOver || !ctxRef.current) {
-            return;
-        }
-    
-        console.log('Initializing balls');
-        ballsRef.current = [];
-        linesRef.current = [];
-        currentLineRef.current = null;
-        isDrawingRef.current = false;
-        particleSystemRef.current = new ParticleSystem();
-    
-        // Initialize balls with constant speed
-        const BASE_SPEED = 150;  // Single constant speed for all balls
-    
-        for (let i = 0; i < settings.ballCount; i++) {
-            const x = Math.random() * (dimensions.width - 2 * settings.ballRadius) + settings.ballRadius;
-            const y = Math.random() * (dimensions.height - 2 * settings.ballRadius) + settings.ballRadius;
-            const angle = Math.random() * 2 * Math.PI;
+        if (gameState.infectionStarted) {
+            // Clear all lines
+            linesRef.current = [];
+            currentLineRef.current = null;
+            isDrawingRef.current = false;
+            particleSystemRef.current = new ParticleSystem();
             
-            // All balls get the same base speed, just in different directions
-            const vx = Math.cos(angle) * BASE_SPEED;
-            const vy = Math.sin(angle) * BASE_SPEED;
+            // Make sure all balls are healthy at game start
+            ballsRef.current.forEach(ball => ball.cure());
     
-            ballsRef.current.push(new Ball({
-                x,
-                y,
-                vx,
-                vy,
-                radius: settings.ballRadius,
-                speedScale: settings.speedScale
-            }));
-        }
+            // Start infection after delay
+            const infectionTimeout = window.setTimeout(() => {
+                if (ballsRef.current.length > 0) {
+                    const randomBall = ballsRef.current[Math.floor(Math.random() * ballsRef.current.length)];
+                    randomBall.infect();
+                }
+            }, 2000);
     
-        // Start infection after a short delay
-        const infectionTimeout = window.setTimeout(() => {
-            console.log('Starting infection');
-            const randomBall = ballsRef.current[Math.floor(Math.random() * ballsRef.current.length)];
-            randomBall.infect();
-        }, 2000);
-        
-        startGameLoop();
-        
-        return () => {
-            console.log('Cleaning up game resources');
-            window.clearTimeout(infectionTimeout);
-            if (requestIdRef.current) {
-                cancelAnimationFrame(requestIdRef.current);
-                requestIdRef.current = undefined;
+            // Reset the flag after handling
+            if (gameState.shouldResetLines) {
+                setGameState(prev => ({ ...prev, shouldResetLines: false }));
             }
-        };
-    }, [gameState.infectionStarted, gameState.isGameOver, dimensions, settings, startGameLoop]);
+    
+            return () => clearTimeout(infectionTimeout);
+        }
+    }, [gameState.infectionStarted, gameState.shouldResetLines]);
 
     // Input handlers
     const getInputPos = useCallback((evt: React.TouchEvent | React.MouseEvent) => {
@@ -280,7 +275,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
         currentLineRef.current.complete();
         linesRef.current.push(currentLineRef.current);
-        
+
         isDrawingRef.current = false;
         currentLineRef.current = null;
     }, []);
