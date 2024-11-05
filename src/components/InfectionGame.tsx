@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Play } from 'lucide-react';
+import { HelpCircle, Play, X } from 'lucide-react';
 import GameCanvas from './GameCanvas';
 import GameOverScreen from './GameOverScreen';
 import NameInputDialog from './NameInputDialog';
@@ -8,10 +8,135 @@ import { GameState, LeaderboardEntry } from './types';
 import BackgroundMusic from './BackgroundMusic';
 import logoUrl from '../assets/logo.svg';
 
+// Tutorial Modal Component
+const TutorialModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+            onClick={onClose}
+        >
+            <div 
+                className="relative max-w-lg mx-4 transform transition-all"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="relative bg-black/80 rounded-2xl p-8 border border-emerald-500/30 shadow-2xl">
+                    <button
+                        onClick={onClose}
+                        className="absolute right-4 top-4 text-emerald-400 hover:text-emerald-300 transition-colors"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                    
+                    <div className="flex items-center mb-6">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 flex items-center justify-center mr-4 shadow-lg">
+                            <Play className="w-7 h-7 text-white" />
+                        </div>
+                        <h2 className="text-3xl font-bold text-white">How to Play</h2>
+                    </div>
+
+                    <div className="space-y-4 text-lg text-emerald-100 leading-relaxed">
+                        <p>
+                            Draw lines to contain the infection! Keep your barriers strong and prevent
+                            any contact with infected particles.
+                        </p>
+                        <p>
+                            Your mission: contain all infections while protecting as many lives as possible.
+                            The faster you contain the outbreak, the higher your score!
+                        </p>
+                    </div>
+
+                    <div className="mt-8 text-center">
+                        <button
+                            onClick={onClose}
+                            className="px-8 py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-full font-bold transition-colors"
+                        >
+                            Got it!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// StartScreen Component
+const StartScreen = ({ onStart }: { onStart: () => void }) => {
+    const [showTutorial, setShowTutorial] = useState(false);
+
+    return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-black/70 to-black/90 p-6">
+            <div className="flex flex-col items-center animate-fade-in">
+                <img src={logoUrl} alt="Infection Game Logo" className="w-64 h-64 mb-2 animate-pulse" />
+                <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-200 to-emerald-400 mb-2 animate-title text-center">
+                    INFECTION
+                </h1>
+                <div className="text-xl font-bold tracking-widest text-emerald-500 uppercase mb-8">
+                    Contain the Outbreak
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                    <button
+                        onClick={onStart}
+                        className="group relative flex items-center gap-4 px-16 py-6 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-full text-3xl font-bold shadow-xl transition-all duration-300 hover:scale-105 hover:-translate-y-1"
+                    >
+                        <Play className="h-10 w-10" />
+                        Play Now
+                        <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                        <div className="absolute -inset-1 bg-emerald-500 rounded-full blur opacity-30 group-hover:opacity-40 transition-opacity" />
+                    </button>
+
+                    <button
+                        onClick={() => setShowTutorial(true)}
+                        className="flex items-center gap-2 px-6 py-3 text-emerald-400 hover:text-emerald-300 transition-colors text-lg font-semibold"
+                    >
+                        <HelpCircle className="w-5 h-5" />
+                        How to Play
+                    </button>
+                </div>
+            </div>
+
+            <TutorialModal 
+                isOpen={showTutorial} 
+                onClose={() => setShowTutorial(false)} 
+            />
+        </div>
+    );
+};
+
+// Styles for animations
+const styles = `
+@keyframes title {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fade-in {
+    0% { opacity: 0; transform: translateY(-20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-title {
+    animation: title 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-fade-in {
+    animation: fade-in 1s ease-out forwards;
+}
+`;
+
+// Add styles to document
+const styleSheet = document.createElement('style');
+styleSheet.textContent = styles;
+document.head.appendChild(styleSheet);
+
+// [Rest of the InfectionGame component code remains the same...]
+
+// Main Game Component
 export const InfectionGame = () => {
     const settings = useGameSettings();
     const [showNameInput, setShowNameInput] = useState(false);
-    const [showTutorial, setShowTutorial] = useState(true);
     const [gameState, setGameState] = useState<GameState>(() => ({
         isGameOver: false,
         infectionStarted: false,
@@ -75,7 +200,6 @@ export const InfectionGame = () => {
 
     // Game flow handlers
     const startGame = useCallback(() => {
-        setShowTutorial(false);
         setGameState(prev => ({
             ...prev,
             isGameOver: false,
@@ -175,38 +299,6 @@ export const InfectionGame = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // UI Components
-    const StartScreen = () => (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
-            <div className="mb-8 flex flex-col items-center">
-                <img src={logoUrl} alt="Infection Game Logo" className="w-64 h-64 mb-4" />
-                <h1 className="text-4xl font-bold text-white">Infection Game</h1>
-            </div>
-            {showTutorial && (
-                <div className="mb-8 max-w-md bg-white rounded-lg p-6 shadow-lg">
-                    <div className="flex items-center mb-2">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center mr-2">
-                            <Play className="w-5 h-5 text-white" />
-                        </div>
-                        <h2 className="text-xl font-bold">How to Play</h2>
-                    </div>
-                    <p className="text-gray-600">
-                        Draw lines to contain the infection! Don't let your lines touch any balls.
-                        The game ends when all infections are contained. Save as many lives as you can!
-                    </p>
-                </div>
-            )}
-            <button
-                onClick={startGame}
-                className="group relative flex items-center gap-3 px-12 py-6 bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-full text-3xl font-bold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-            >
-                <Play className="h-10 w-10" />
-                Play Now
-                <div className="absolute -inset-1 bg-emerald-500 rounded-full blur opacity-30 group-hover:opacity-40 transition-opacity" />
-            </button>
-        </div>
-    );
-
     return (
         <div className="relative w-full h-full overflow-hidden bg-virus-base bg-virus-pattern bg-repeat bg-[length:7em_7em]">
             <BackgroundMusic />
@@ -217,7 +309,9 @@ export const InfectionGame = () => {
                 onGameOver={handleGameOver}
             />
 
-            {!gameState.infectionStarted && !gameState.isGameOver && <StartScreen />}
+            {!gameState.infectionStarted && !gameState.isGameOver && (
+                <StartScreen onStart={startGame} />
+            )}
 
             {gameState.isGameOver && !showNameInput && (
                 <GameOverScreen
