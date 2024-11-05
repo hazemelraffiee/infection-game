@@ -2,9 +2,10 @@
 
 # List of file paths and glob patterns
 patterns=(
-    "src/**/*.tsx"
-    "src/**/*.ts"
-	"src/**/*.css"
+    "/src/**/*.tsx"
+    "/src/**/*.ts"
+	"/src/**/*.css"
+    "/src/**/*.svg"
 )
 
 # Output file
