@@ -5,6 +5,7 @@ import GameOverScreen from './GameOverScreen';
 import NameInputDialog from './NameInputDialog';
 import { useGameSettings } from './GameSettings';
 import { GameState, LeaderboardEntry } from './types';
+import BackgroundMusic from './BackgroundMusic';
 
 export const InfectionGame = () => {
     const settings = useGameSettings();
@@ -203,6 +204,7 @@ export const InfectionGame = () => {
 
     return (
         <div className="relative w-full h-full overflow-hidden">
+            <BackgroundMusic />
             <GameCanvas
                 gameState={gameState}
                 setGameState={setGameState}
