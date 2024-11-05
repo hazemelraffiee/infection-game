@@ -7,7 +7,7 @@ const BackgroundMusic = () => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const audio = new Audio('./src/assets/music.mp3');
+    const audio = new Audio('https://github.com/hazemelraffiee/infection-game/raw/refs/heads/main/src/assets/music.mp3');
     audio.loop = true;
     audioRef.current = audio;
 
