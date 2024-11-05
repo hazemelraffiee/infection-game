@@ -1,8 +1,6 @@
-# Infection Game
+# 🦠 Infection Game 🦠 [(Play Now)](https://hazemelraffiee.github.io/infection-game/)
 
 A fast-paced, interactive web game where players must contain infections by drawing lines on the screen. Save as many lives as possible by strategically isolating infected entities from healthy ones!
-
-🎮 [Play Now](https://hazemelraffiee.github.io/infection-game/)
 
 ## 🚀 Getting Started
 
@@ -42,25 +40,15 @@ Preview the production build locally:
 ```bash
 npm run preview
 ```
-The preview will be available at:
-```
-http://localhost:5173/infection-game/
-```
 
 ### Deployment
 
-The game is configured for GitHub Pages deployment:
+The game is configured for GitHub Pages deployment.
 
-```bash
-npm run deploy
-```
-
-This will automatically run the build process and deploy to GitHub Pages. The game will be available at:
+Every push on the main branch automatically runs the build process and deploys to GitHub Pages. The game is available at:
 ```
 https://hazemelraffiee.github.io/infection-game/
 ```
-
-Note: Pushing to the main branch triggers an automatic deployment.
 
 ### Scripts
 
@@ -97,12 +85,6 @@ Note: Pushing to the main branch triggers an automatic deployment.
 - Autoprefixer
 
 ## 🏆 Features
-
-### Game Mechanics
-- Smooth line drawing system
-- Physics-based entity movement
-- Collision detection
-- Infection spread mechanics
 
 ### UI/UX
 - Intuitive touch and mouse controls
@@ -152,10 +134,10 @@ Please ensure your PR adheres to the following guidelines:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
 
 ## System Requirements
 
 - Node.js v22.x
 - Modern web browser with canvas support
-- Recommended: Touch screen for mobile play
+- Recommended: Touch screen for mobile play.
