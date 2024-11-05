@@ -6,6 +6,7 @@ import NameInputDialog from './NameInputDialog';
 import { useGameSettings } from './GameSettings';
 import { GameState, LeaderboardEntry } from './types';
 import BackgroundMusic from './BackgroundMusic';
+import logoUrl from '../assets/logo.svg';
 
 export const InfectionGame = () => {
     const settings = useGameSettings();
@@ -92,14 +93,14 @@ export const InfectionGame = () => {
     const handleGameOver = useCallback(() => {
         const endTime = Date.now();
         const gameTime = (endTime - (gameState.gameStartTime || 0)) / 1000;
-    
+
         setGameState(prev => ({
             ...prev,
             isGameOver: true,
             gameEndTime: endTime,
             infectionStarted: false,
         }));
-    
+
         if (isLeaderboardWorthy('score', gameState.currentScore) ||
             isLeaderboardWorthy('time', gameTime)) {
             setShowNameInput(true);
@@ -177,6 +178,10 @@ export const InfectionGame = () => {
     // UI Components
     const StartScreen = () => (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
+            <div className="mb-8 flex flex-col items-center">
+                <img src={logoUrl} alt="Infection Game Logo" className="w-64 h-64 mb-4" />
+                <h1 className="text-4xl font-bold text-white">Infection Game</h1>
+            </div>
             {showTutorial && (
                 <div className="mb-8 max-w-md bg-white rounded-lg p-6 shadow-lg">
                     <div className="flex items-center mb-2">
@@ -203,7 +208,7 @@ export const InfectionGame = () => {
     );
 
     return (
-        <div className="relative w-full h-full overflow-hidden">
+        <div className="relative w-full h-full overflow-hidden bg-virus-base bg-virus-pattern bg-repeat bg-[length:7em_7em]">
             <BackgroundMusic />
             <GameCanvas
                 gameState={gameState}

@@ -5,7 +5,14 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      backgroundImage: {
+        'virus-pattern': "url('./src/assets/background.svg')",
+      },
+      backgroundColor: {
+        'virus-base': '#E1F5FE',
+      }
+    },
   },
   plugins: [],
 }

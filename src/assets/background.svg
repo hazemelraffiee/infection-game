@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     <defs>
-      <!-- Much brighter gradient for main body -->
+      <!-- Main body gradient -->
       <radialGradient id="virusGradient" cx="50%" cy="50%" r="50%">
         <stop offset="0%" stop-color="#FFFFFF"/>
         <stop offset="60%" stop-color="#F8FDFF"/>
         <stop offset="100%" stop-color="#E1F5FE"/>
       </radialGradient>
       
-      <!-- Enhanced glow filter -->
+      <!-- Glow effect -->
       <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
         <feGaussianBlur stdDeviation="0.5" result="coloredBlur"/>
         <feMerge>
@@ -17,103 +17,28 @@
       </filter>
     </defs>
   
-    <!-- Main virus body with animation -->
-    <path d="M12.0565 18.9998C15.9224 19.031 19.031 15.9224 18.9998 12.0565C18.9686 8.19062 15.8094 5.03143 11.9435 5.00023C8.07765 4.96904 4.96904 8.07765 5.00023 11.9435C5.03143 15.8094 8.19062 18.9686 12.0565 18.9998Z" 
-          fill="url(#virusGradient)" 
-          stroke="#E1F5FE" 
+    <!-- Main virus body -->
+    <circle cx="12" cy="12" r="6" 
+            fill="url(#virusGradient)" 
+            stroke="#E1F5FE" 
+            stroke-width="1.5"
+            filter="url(#glow)"/>
+    
+    <!-- Virus spikes -->
+    <path d="M12 3L13 6M12 21L11 18M3 12L6 13M21 12L18 11M5 5L7.5 7.5M19 19L16.5 16.5M19 5L16.5 7.5M5 19L7.5 16.5" 
+          stroke="#F8FDFF" 
           stroke-width="1.5" 
-          stroke-linecap="round"
-          filter="url(#glow)">
-      <animate attributeName="d" 
-               dur="4s" 
-               repeatCount="indefinite"
-               values="
-                 M12.0565 18.9998C15.9224 19.031 19.031 15.9224 18.9998 12.0565C18.9686 8.19062 15.8094 5.03143 11.9435 5.00023C8.07765 4.96904 4.96904 8.07765 5.00023 11.9435C5.03143 15.8094 8.19062 18.9686 12.0565 18.9998Z;
-                 M12.0565 19.2998C16.1224 19.331 19.331 16.1224 19.2998 12.0565C19.2686 8.19062 15.8094 4.83143 11.9435 4.80023C8.07765 4.76904 4.76904 8.07765 4.80023 11.9435C4.83143 15.8094 8.19062 19.2686 12.0565 19.2998Z;
-                 M12.0565 18.9998C15.9224 19.031 19.031 15.9224 18.9998 12.0565C18.9686 8.19062 15.8094 5.03143 11.9435 5.00023C8.07765 4.96904 4.96904 8.07765 5.00023 11.9435C5.03143 15.8094 8.19062 18.9686 12.0565 18.9998Z"
-      />
-    </path>
-  
-    <!-- Corner spikes with animation -->
-    <path d="M18 6L16.95 7.05003" stroke="#F8FDFF" stroke-width="1.5" stroke-linecap="round">
-      <animateTransform attributeName="transform" type="rotate" values="0 18 6;10 18 6;0 18 6" dur="3s" repeatCount="indefinite"/>
-    </path>
-    <path d="M5 5L7 7" stroke="#F8FDFF" stroke-width="1.5" stroke-linecap="round">
-      <animateTransform attributeName="transform" type="rotate" values="0 5 5;-10 5 5;0 5 5" dur="3.2s" repeatCount="indefinite"/>
-    </path>
-    <path d="M17.0498 18.0498L16.5 17.5" stroke="#F8FDFF" stroke-width="1.5" stroke-linecap="round">
-      <animateTransform attributeName="transform" type="rotate" values="0 17 18;10 17 18;0 17 18" dur="2.8s" repeatCount="indefinite"/>
-    </path>
-    <path d="M6 19.0498L7.05003 17.9998" stroke="#F8FDFF" stroke-width="1.5" stroke-linecap="round">
-      <animateTransform attributeName="transform" type="rotate" values="0 6 19;-10 6 19;0 6 19" dur="3.4s" repeatCount="indefinite"/>
-    </path>
-  
-    <!-- Large circles -->
-    <path d="M16.5 13C16.5 14.1046 15.6046 15 14.5 15C13.3954 15 12.5 14.1046 12.5 13C12.5 11.8954 13.3954 11 14.5 11C15.6046 11 16.5 11.8954 16.5 13Z" 
-          stroke="#E1F5FE" 
-          stroke-width="1.5"
-          fill="#FFFFFF">
-      <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
-    </path>
-  
-    <!-- Small circles -->
-    <path d="M11 9C11 9.55228 10.5523 10 10 10C9.44772 10 9 9.55228 9 9C9 8.44772 9.44772 8 10 8C10.5523 8 11 8.44772 11 9Z" 
-          stroke="#E1F5FE" 
-          stroke-width="1.5"
-          fill="#FFFFFF">
-      <animate attributeName="opacity" values="0.7;1;0.7" dur="1.8s" repeatCount="indefinite"/>
-    </path>
-  
-    <!-- Tiny circle -->
-    <circle cx="9" cy="13" r="1" fill="#FFFFFF">
-      <animate attributeName="r" values="1;1.2;1" dur="1.5s" repeatCount="indefinite"/>
-    </circle>
-  
-    <!-- Outer circles with animation -->
-    <circle cx="19.5" cy="4.5" r="1.5" stroke="#F8FDFF" stroke-width="1.5" fill="none">
-      <animate attributeName="r" values="1.5;1.7;1.5" dur="2s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="3.5" cy="3.5" r="1.5" stroke="#F8FDFF" stroke-width="1.5" fill="none">
-      <animate attributeName="r" values="1.5;1.7;1.5" dur="2.2s" repeatCount="indefinite"/>
-    </circle>
-  
-    <!-- Semi-circles -->
-    <path d="M2 12C2 12.8284 2.67157 13.5 3.5 13.5C4.32843 13.5 5 12.8284 5 12C5 11.1716 4.32843 10.5 3.5 10.5C2.67157 10.5 2 11.1716 2 12Z" 
-          stroke="#E1F5FE" 
-          stroke-width="1.5"
-          fill="#FFFFFF">
-      <animate attributeName="opacity" values="0.8;1;0.8" dur="1.6s" repeatCount="indefinite"/>
-    </path>
-  
-    <!-- Additional outer circles -->
-    <circle cx="18.5" cy="19.5" r="1.5" stroke="#F8FDFF" stroke-width="1.5" fill="none">
-      <animate attributeName="r" values="1.5;1.7;1.5" dur="2.4s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="4.5" cy="20.5" r="1.5" stroke="#F8FDFF" stroke-width="1.5" fill="none">
-      <animate attributeName="r" values="1.5;1.7;1.5" dur="2.6s" repeatCount="indefinite"/>
-    </circle>
-  
-    <!-- Top semi-circle -->
-    <path d="M13.5 3.5C13.5 4.32843 12.8284 5 12 5C11.1716 5 10.5 4.32843 10.5 3.5C10.5 2.67157 11.1716 2 12 2C12.8284 2 13.5 2.67157 13.5 3.5Z" 
-          stroke="#E1F5FE" 
-          stroke-width="1.5"
-          fill="#FFFFFF">
-      <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite"/>
-    </path>
-  
-    <!-- Right semi-circle -->
-    <path d="M19.5 13.5C20.3284 13.5 21 12.8284 21 12C21 11.1716 20.3284 10.5 19.5 10.5C19.3247 10.5 19.1564 10.5301 19 10.5854V13.4146C19.1564 13.4699 19.3247 13.5 19.5 13.5Z" 
-          stroke="#E1F5FE" 
-          stroke-width="1.5"
-          fill="#FFFFFF">
-      <animate attributeName="opacity" values="0.8;1;0.8" dur="1.8s" repeatCount="indefinite"/>
-    </path>
-  
-    <!-- Bottom semi-circle -->
-    <path d="M10.5852 19C10.7911 19.5826 11.3468 20.0001 11.9999 20.0001C12.653 20.0001 13.2086 19.5826 13.4146 19L10.5852 19Z" 
-          stroke="#E1F5FE" 
-          stroke-width="1.5"
-          fill="#FFFFFF">
-      <animate attributeName="opacity" values="1;0.8;1" dur="2.2s" repeatCount="indefinite"/>
-    </path>
-  </svg>
+          stroke-linecap="round"/>
+    
+    <!-- Surface proteins (circles) -->
+    <circle cx="14" cy="10" r="1.5" fill="#FFFFFF" stroke="#E1F5FE" stroke-width="1"/>
+    <circle cx="10" cy="14" r="1.5" fill="#FFFFFF" stroke="#E1F5FE" stroke-width="1"/>
+    <circle cx="10" cy="10" r="1" fill="#FFFFFF"/>
+    <circle cx="14" cy="14" r="1" fill="#FFFFFF"/>
+    
+    <!-- Outer receptor sites -->
+    <circle cx="20" cy="4" r="1" stroke="#F8FDFF" stroke-width="1" fill="none"/>
+    <circle cx="4" cy="20" r="1" stroke="#F8FDFF" stroke-width="1" fill="none"/>
+    <circle cx="4" cy="4" r="1" stroke="#F8FDFF" stroke-width="1" fill="none"/>
+    <circle cx="20" cy="20" r="1" stroke="#F8FDFF" stroke-width="1" fill="none"/>
+</svg>
