@@ -4,7 +4,7 @@ import { GameSettings } from './types';
 export const BASE_SETTINGS = {
     infectionDuration: 10 * 1000,
     leaderboardSize: 5,
-    ballCount: 20, // Fixed ball count
+    ballCount: 20, // Default ball count for mobile screens
     // Base values for a laptop screen (1366x768)
     baseScreenArea: 1366 * 768,
     baseBallRadius: 40, // Adjusted base radius for better scaling
@@ -30,19 +30,27 @@ export const useGameSettings = () => {
 
             // Adjust ball radius with limits
             let scaledBallRadius = Math.round(BASE_SETTINGS.baseBallRadius * lengthScale);
-            
+
             // Adjust speed scale inversely for smaller screens
             let speedScale = Math.pow(lengthScale, 0.8); // Adjust exponent as needed
             speedScale = Math.max(BASE_SETTINGS.minSpeedScale, Math.min(BASE_SETTINGS.maxSpeedScale, speedScale));
 
+            // Adjust ball count based on screen size
+            let newBallCount = window.innerWidth > 1024 ? 30 : 20; // 1024px is a common breakpoint between mobile and desktop
+
             setSettings(prev => {
-                if (prev.ballRadius === scaledBallRadius && prev.speedScale === speedScale) {
+                if (
+                    prev.ballRadius === scaledBallRadius &&
+                    prev.speedScale === speedScale &&
+                    prev.ballCount === newBallCount
+                ) {
                     return prev;
                 }
                 return {
                     ...prev,
                     ballRadius: scaledBallRadius,
-                    speedScale: speedScale
+                    speedScale: speedScale,
+                    ballCount: newBallCount,
                 };
             });
         };
