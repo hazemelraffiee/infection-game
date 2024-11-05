@@ -4,7 +4,7 @@ import { GameSettings } from './types';
 export const BASE_SETTINGS = {
     infectionDuration: 10 * 1000,
     leaderboardSize: 5,
-    ballCount: 25, // Fixed ball count
+    ballCount: 20, // Fixed ball count
     // Base values for a laptop screen (1366x768)
     baseScreenArea: 1366 * 768,
     baseBallRadius: 40, // Adjusted base radius for better scaling
