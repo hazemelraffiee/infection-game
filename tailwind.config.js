@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       backgroundImage: {
-        'virus-pattern': "url('./src/assets/background.svg')",
+        'virus-pattern': "url('./assets/background.svg')",
       },
       backgroundColor: {
         'virus-base': '#0A1A2F',
