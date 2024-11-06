@@ -131,8 +131,6 @@ const styleSheet = document.createElement('style');
 styleSheet.textContent = styles;
 document.head.appendChild(styleSheet);
 
-// [Rest of the InfectionGame component code remains the same...]
-
 // Main Game Component
 export const InfectionGame = () => {
     const settings = useGameSettings();
@@ -145,7 +143,6 @@ export const InfectionGame = () => {
         gameEndTime: null,
         highScores: [],
         bestTimes: [],
-        gameInstance: null
     }));
 
     // Load leaderboard data
@@ -245,59 +242,63 @@ export const InfectionGame = () => {
     }, [gameState.gameEndTime, gameState.gameStartTime, gameState.currentScore, isLeaderboardWorthy, addToLeaderboard]);
 
     // Leaderboard reset handler
+    const handleResetLeaderboard = useCallback(() => {
+        // Reset leaderboard state
+        setGameState(prev => ({
+            ...prev,
+            highScores: [],
+            bestTimes: []
+        }));
+
+        // Clear localStorage
+        localStorage.setItem('highScores', '[]');
+        localStorage.setItem('bestTimes', '[]');
+
+        // Show notification
+        const flash = document.createElement('div');
+        flash.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 9999;
+            animation: fadeOut 2s forwards;
+        `;
+        flash.textContent = '🗑️ Leaderboard reset';
+        document.body.appendChild(flash);
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                0% { opacity: 1; }
+                70% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        setTimeout(() => {
+            document.body.removeChild(flash);
+            document.head.removeChild(style);
+        }, 2000);
+    }, []);
+
+    // Handle keyboard shortcut for leaderboard reset
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.ctrlKey && e.shiftKey && e.key === 'R') {
                 e.preventDefault();
-
-                // Reset leaderboard state
-                setGameState(prev => ({
-                    ...prev,
-                    highScores: [],
-                    bestTimes: []
-                }));
-
-                // Clear localStorage
-                localStorage.setItem('highScores', '[]');
-                localStorage.setItem('bestTimes', '[]');
-
-                // Show notification
-                const flash = document.createElement('div');
-                flash.style.cssText = `
-                    position: fixed;
-                    top: 10px;
-                    right: 10px;
-                    padding: 10px;
-                    background: rgba(0, 0, 0, 0.7);
-                    color: white;
-                    border-radius: 5px;
-                    font-size: 12px;
-                    z-index: 9999;
-                    animation: fadeOut 2s forwards;
-                `;
-                flash.textContent = '🗑️ Leaderboard reset';
-                document.body.appendChild(flash);
-
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes fadeOut {
-                        0% { opacity: 1; }
-                        70% { opacity: 1; }
-                        100% { opacity: 0; }
-                    }
-                `;
-                document.head.appendChild(style);
-
-                setTimeout(() => {
-                    document.body.removeChild(flash);
-                    document.head.removeChild(style);
-                }, 2000);
+                handleResetLeaderboard();
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [handleResetLeaderboard]);
 
     return (
         <div className="relative w-full h-full overflow-hidden bg-virus-base">
@@ -325,6 +326,7 @@ export const InfectionGame = () => {
                         highScores={gameState.highScores}
                         bestTimes={gameState.bestTimes}
                         onPlayAgain={resetGame}
+                        onResetLeaderboard={handleResetLeaderboard} // Pass the handler here
                     />
                 )}
 
