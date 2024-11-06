@@ -300,36 +300,42 @@ export const InfectionGame = () => {
     }, []);
 
     return (
-        <div className="relative w-full h-full overflow-hidden bg-virus-base bg-virus-pattern bg-repeat bg-[length:7em_7em]">
-            <BackgroundMusic />
-            <GameCanvas
-                gameState={gameState}
-                setGameState={setGameState}
-                settings={settings}
-                onGameOver={handleGameOver}
-            />
-
-            {!gameState.infectionStarted && !gameState.isGameOver && (
-                <StartScreen onStart={startGame} />
-            )}
-
-            {gameState.isGameOver && !showNameInput && (
-                <GameOverScreen
-                    currentScore={gameState.currentScore}
-                    gameTime={(gameState.gameEndTime! - gameState.gameStartTime!) / 1000}
-                    highScores={gameState.highScores}
-                    bestTimes={gameState.bestTimes}
-                    onPlayAgain={resetGame}
+        <div className="relative w-full h-full overflow-hidden bg-virus-base">
+            {/* Pattern overlay with animation */}
+            <div className="absolute inset-0 bg-virus-pattern bg-repeat bg-[length:7em_7em] animate-pulse-slow" />
+            
+            {/* Content container */}
+            <div className="relative z-10 w-full h-full">
+                <BackgroundMusic />
+                <GameCanvas
+                    gameState={gameState}
+                    setGameState={setGameState}
+                    settings={settings}
+                    onGameOver={handleGameOver}
                 />
-            )}
 
-            {showNameInput && (
-                <NameInputDialog
-                    score={gameState.currentScore}
-                    time={(gameState.gameEndTime! - gameState.gameStartTime!) / 1000}
-                    onSubmit={handleNameSubmit}
-                />
-            )}
+                {!gameState.infectionStarted && !gameState.isGameOver && (
+                    <StartScreen onStart={startGame} />
+                )}
+
+                {gameState.isGameOver && !showNameInput && (
+                    <GameOverScreen
+                        currentScore={gameState.currentScore}
+                        gameTime={(gameState.gameEndTime! - gameState.gameStartTime!) / 1000}
+                        highScores={gameState.highScores}
+                        bestTimes={gameState.bestTimes}
+                        onPlayAgain={resetGame}
+                    />
+                )}
+
+                {showNameInput && (
+                    <NameInputDialog
+                        score={gameState.currentScore}
+                        time={(gameState.gameEndTime! - gameState.gameStartTime!) / 1000}
+                        onSubmit={handleNameSubmit}
+                    />
+                )}
+            </div>
         </div>
     );
 };

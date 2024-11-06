@@ -306,14 +306,17 @@ export class Ball {
 
     private applyGradientColors(gradient: CanvasGradient): void {
         if (this.isInfected()) {
-            gradient.addColorStop(0, '#ff6b6b');
-            gradient.addColorStop(1, '#ff0000');
+            // Neon red/pink for infected
+            gradient.addColorStop(0, '#ff2d6f');  // Bright neon pink
+            gradient.addColorStop(1, '#cc0033');  // Deep crimson
         } else if (!this.isDead()) {
-            gradient.addColorStop(0, '#90ee90');
-            gradient.addColorStop(1, '#32cd32');
+            // Neon green for healthy
+            gradient.addColorStop(0, '#39ff14');  // Electric/neon green
+            gradient.addColorStop(1, '#00b140');  // Deep emerald
         } else {
-            gradient.addColorStop(0, '#a0a0a0');
-            gradient.addColorStop(1, '#808080');
+            // Darker, muted blue-grey for dead
+            gradient.addColorStop(0, '#45526c');  // Medium blue-grey
+            gradient.addColorStop(1, '#2c3347');  // Dark blue-grey
         }
     }
 

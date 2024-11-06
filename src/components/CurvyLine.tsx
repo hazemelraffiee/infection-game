@@ -160,22 +160,29 @@ export class CurvyLine {
 
     public draw(ctx: CanvasRenderingContext2D): void {
         if (this.points.length < 2) return;
-
+    
         ctx.save();
-
+    
         // Adjust opacity based on disappearProgress
         if (this.isDisappearing) {
             const opacity = 1 - (this.disappearProgress / this.DISAPPEAR_DURATION);
             ctx.globalAlpha = opacity;
         }
-
-        // Add glow effect
-        ctx.shadowColor = this.isComplete ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 100, 255, 0.5)';
-        ctx.shadowBlur = 10;
-
+    
+        // Enhanced glow effect for cyberpunk theme
+        if (this.isComplete) {
+            // Completed lines get a cyan/blue defensive shield look
+            ctx.shadowColor = 'rgba(0, 255, 255, 0.6)';
+            ctx.shadowBlur = 15;
+        } else {
+            // Drawing lines get a bright energy field look
+            ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
+            ctx.shadowBlur = 20;
+        }
+    
         ctx.beginPath();
         ctx.moveTo(this.points[0].x, this.points[0].y);
-
+    
         // Create smooth curve through points
         for (let i = 1; i < this.points.length - 2; i++) {
             const xc = (this.points[i].x + this.points[i + 1].x) / 2;
@@ -187,7 +194,7 @@ export class CurvyLine {
                 yc
             );
         }
-
+    
         // Handle the last two points
         if (this.points.length > 2) {
             const lastIndex = this.points.length - 1;
@@ -203,30 +210,41 @@ export class CurvyLine {
                 this.points[1].y
             );
         }
-
-        // Create line gradient
+    
+        // Create line gradient with cyberpunk colors
         const gradient = ctx.createLinearGradient(
             this.points[0].x,
             this.points[0].y,
             this.points[this.points.length - 1].x,
             this.points[this.points.length - 1].y
         );
-
+    
         if (this.isComplete) {
-            gradient.addColorStop(0, '#2c3e50');
-            gradient.addColorStop(1, '#34495e');
+            // Completed lines: cyan to blue gradient for shield effect
+            gradient.addColorStop(0, '#00ffff');  // Bright cyan
+            gradient.addColorStop(0.5, '#00ccff'); // Mid cyan-blue
+            gradient.addColorStop(1, '#0099ff');  // Deep blue
         } else {
-            gradient.addColorStop(0, '#3498db');
-            gradient.addColorStop(1, '#2980b9');
+            // Drawing lines: bright energy field effect
+            gradient.addColorStop(0, '#00ffff');  // Bright cyan
+            gradient.addColorStop(0.5, '#40ffff'); // Lighter cyan
+            gradient.addColorStop(1, '#00ffff');  // Bright cyan
         }
-
-        // Apply line styles
+    
+        // Apply line styles with increased width for better visibility
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;  // Increased from 3 to 4
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.stroke();
-
+    
+        // Add inner glow
+        if (this.isComplete) {
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    
         ctx.restore();
     }
 

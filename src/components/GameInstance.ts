@@ -175,8 +175,7 @@ export class GameInstance {
             // Add particle effects along the line
             if (this.particleSystem) {
                 this.particleSystem.addLineDisappearanceEffect(
-                    this.currentLine.getPoints(),
-                    '#ff6b6b'
+                    this.currentLine.getPoints()
                 );
             }
 

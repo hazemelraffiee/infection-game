@@ -47,21 +47,23 @@ export class ParticleSystem {
         }
     }
 
-    public addLineDisappearanceEffect(points: Point[], color: string): void {
+    public addLineDisappearanceEffect(points: Point[]): void {
         points.forEach(point => {
-            for (let i = 0; i < 2; i++) { // Adjust the number for effect intensity
+            // Increased number of particles per point for more dramatic effect
+            for (let i = 0; i < 3; i++) {
+                const baseColor = '#00ffff';  // Cyan base color matching the lines
                 this.particles.push({
                     x: point.x,
                     y: point.y,
-                    color,
+                    color: baseColor,
                     velocity: {
-                        x: (Math.random() - 0.5) * this.PARTICLE_SPEED,
-                        y: (Math.random() - 0.5) * this.PARTICLE_SPEED
+                        x: (Math.random() - 0.5) * this.PARTICLE_SPEED * 1.2,
+                        y: (Math.random() - 0.5) * this.PARTICLE_SPEED * 1.2
                     },
-                    life: this.PARTICLE_LIFETIME,
-                    scale: 0.5 + Math.random() * 0.5,
+                    life: this.PARTICLE_LIFETIME * (0.8 + Math.random() * 0.4),
+                    scale: 0.8 + Math.random() * 0.6,
                     rotation: Math.random() * Math.PI * 2,
-                    rotationSpeed: (Math.random() - 0.5) * 0.1
+                    rotationSpeed: (Math.random() - 0.5) * 0.15
                 });
             }
         });
@@ -101,49 +103,51 @@ export class ParticleSystem {
         this.particles.forEach(particle => {
             ctx.save();
 
-            // Set transparency based on life
-            ctx.globalAlpha = particle.life;
+            // Enhanced transparency effect
+            ctx.globalAlpha = particle.life * 0.8;  // Slightly more opaque
 
-            // Move to particle position and apply rotation
             ctx.translate(particle.x, particle.y);
             ctx.rotate(particle.rotation);
             ctx.scale(particle.scale, particle.scale);
 
-            // Create gradient for particle
+            // Enhanced gradient for more dramatic effect
             const gradient = ctx.createRadialGradient(
                 0, 0, 0,
                 0, 0, this.PARTICLE_SIZE
             );
             gradient.addColorStop(0, particle.color);
+            gradient.addColorStop(0.6, this.adjustColorAlpha(particle.color, 0.5));
             gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-            // Draw particle
             ctx.beginPath();
             ctx.fillStyle = gradient;
 
-            // Draw different shapes for variety
-            if (Math.random() < 0.3) {
+            // Enhanced shape variety
+            if (Math.random() < 0.4) {  // Increased chance for special shapes
+                // Diamond/crystal shape
+                const size = this.PARTICLE_SIZE;
+                ctx.moveTo(0, -size);
+                ctx.lineTo(size, 0);
+                ctx.lineTo(0, size);
+                ctx.lineTo(-size, 0);
+                ctx.closePath();
+            } else if (Math.random() < 0.3) {
                 // Star shape
-                for (let i = 0; i < 5; i++) {
-                    const angle = (Math.PI * 2 * i) / 5;
-                    const x = Math.cos(angle) * this.PARTICLE_SIZE;
-                    const y = Math.sin(angle) * this.PARTICLE_SIZE;
-                    if (i === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                }
+                this.drawStar(ctx, 0, 0, this.PARTICLE_SIZE, this.PARTICLE_SIZE * 0.5, 5);
             } else {
-                // Circle shape
+                // Enhanced circle with inner detail
                 ctx.arc(0, 0, this.PARTICLE_SIZE, 0, Math.PI * 2);
+                ctx.fill();
+                // Inner ring
+                ctx.beginPath();
+                ctx.arc(0, 0, this.PARTICLE_SIZE * 0.5, 0, Math.PI * 2);
             }
 
             ctx.fill();
 
-            // Add glow effect
+            // Enhanced glow effect
             ctx.shadowColor = particle.color;
-            ctx.shadowBlur = 5;
+            ctx.shadowBlur = 8;  // Increased glow
             ctx.fill();
 
             ctx.restore();
@@ -153,15 +157,15 @@ export class ParticleSystem {
     }
 
     public addInfectionEffect(x: number, y: number): void {
-        this.addParticles(x, y, '#ff6b6b');
+        this.addParticles(x, y, '#ff2d6f');  // Matching the neon pink from balls
     }
 
     public addCureEffect(x: number, y: number): void {
-        this.addParticles(x, y, '#90ee90');
+        this.addParticles(x, y, '#39ff14');  // Matching the neon green from balls
     }
 
     public addDeathEffect(x: number, y: number): void {
-        this.addParticles(x, y, '#808080');
+        this.addParticles(x, y, '#45526c');  // Matching the muted blue-grey from balls
     }
 
     public addCollisionEffect(x: number, y: number, color: string): void {
@@ -188,5 +192,33 @@ export class ParticleSystem {
 
     public hasParticles(): boolean {
         return this.particles.length > 0;
+    }
+
+    private drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, outerRadius: number, innerRadius: number, points: number): void {
+        let rot = Math.PI / 2 * 3;
+        let step = Math.PI / points;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - outerRadius);
+
+        for (let i = 0; i < points * 2; i++) {
+            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+            const x = cx + Math.cos(rot) * radius;
+            const y = cy + Math.sin(rot) * radius;
+            ctx.lineTo(x, y);
+            rot += step;
+        }
+
+        ctx.closePath();
+    }
+
+    private adjustColorAlpha(color: string, alpha: number): string {
+        if (color.startsWith('#')) {
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+        return color;
     }
 }

@@ -10,6 +10,54 @@ interface GameOverScreenProps {
     onPlayAgain: () => void;
 }
 
+const LeaderboardPanel = ({
+    title,
+    entries,
+    valueFormatter,
+    icon,
+    currentValue
+}: {
+    title: string;
+    entries: LeaderboardEntry[];
+    valueFormatter: (value: number) => string;
+    icon: string;
+    currentValue: number;
+}) => (
+    <div className="w-full md:w-72 bg-black/30 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+        <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">{icon}</span>
+            <h3 className="text-xl font-bold text-white">{title}</h3>
+        </div>
+        <div className="space-y-2">
+            {entries.map((entry, i) => {
+                const isCurrentScore = Math.abs(entry.value - currentValue) < 0.1;
+                const medal = i < 3 ? ['🥇', '🥈', '🥉'][i] : null;
+
+                return (
+                    <div
+                        key={`${entry.playerName}-${entry.date}`}
+                        className={`flex items-center p-3 rounded-xl transition-colors duration-300 ${
+                            isCurrentScore 
+                                ? 'bg-emerald-500/20 border border-emerald-500/30' 
+                                : 'bg-white/5 hover:bg-white/10'
+                        }`}
+                    >
+                        <span className="w-8 text-base text-emerald-300 font-bold">
+                            {medal || `${i + 1}.`}
+                        </span>
+                        <span className="flex-grow truncate text-white/90">
+                            {entry.playerName}
+                        </span>
+                        <span className="font-bold text-emerald-400">
+                            {valueFormatter(entry.value)}
+                        </span>
+                    </div>
+                );
+            })}
+        </div>
+    </div>
+);
+
 const GameOverScreen: React.FC<GameOverScreenProps> = ({
     currentScore,
     gameTime,
@@ -19,80 +67,40 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 }) => {
     const [activeBoard, setActiveBoard] = useState<'scores' | 'times'>('scores');
 
-    const LeaderboardPanel: React.FC<{
-        title: string;
-        entries: LeaderboardEntry[];
-        valueFormatter: (value: number) => string;
-        icon: string;
-        currentValue: number;
-    }> = ({ title, entries, valueFormatter, icon, currentValue }) => (
-        <div className="w-full md:w-60 p-4 bg-white rounded-lg shadow-lg">
-            <div className="flex items-center justify-center gap-2 mb-4">
-                <span className="text-xl md:text-2xl">{icon}</span>
-                <h3 className="text-lg md:text-xl font-bold text-gray-800">{title}</h3>
-            </div>
-            <div className="space-y-2">
-                {entries.map((entry, i) => {
-                    const isCurrentScore = 
-                        Math.abs(entry.value - currentValue) < 0.1;
-                    const medal = i < 3 ? ['🥇', '🥈', '🥉'][i] : null;
-
-                    return (
-                        <div
-                            key={`${entry.playerName}-${entry.date}`}
-                            className={`flex items-center p-2 rounded-lg ${
-                                isCurrentScore ? 'bg-emerald-50' : i % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                            }`}
-                        >
-                            <span className="w-6 md:w-8 text-sm md:text-base text-gray-600 font-bold">
-                                {medal || `${i + 1}.`}
-                            </span>
-                            <span className="flex-grow truncate text-sm md:text-base text-gray-700">
-                                {entry.playerName}
-                            </span>
-                            <span className="text-sm md:text-base font-bold text-emerald-600">
-                                {valueFormatter(entry.value)}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-
     return (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4">
-            <div className="w-full max-w-[700px] bg-gradient-to-b from-white to-gray-50 rounded-2xl md:rounded-3xl shadow-2xl p-4 md:p-8 space-y-4 md:space-y-6">
-                {/* Trophy and Title */}
-                <div className="text-center space-y-1 md:space-y-2">
-                    <span className="text-3xl md:text-4xl">🏆</span>
-                    <h2 className="text-2xl md:text-4xl font-bold text-gray-800">Game Over!</h2>
+        <div className="fixed inset-0 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <div className="w-full max-w-4xl">
+                {/* Stats Container */}
+                <div className="text-center mb-8 space-y-6">
+                    <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-200 to-emerald-400 animate-title">
+                        GAME OVER
+                    </h1>
+                    
+                    <div className="flex justify-center gap-8">
+                        <div className="flex flex-col items-center">
+                            <div className="text-5xl font-bold text-emerald-400 mb-2">
+                                {currentScore}
+                            </div>
+                            <div className="text-emerald-200 font-medium">Lives Saved</div>
+                        </div>
+                        <div className="w-px bg-gradient-to-b from-transparent via-emerald-500/50 to-transparent" />
+                        <div className="flex flex-col items-center">
+                            <div className="text-5xl font-bold text-emerald-400 mb-2">
+                                {gameTime.toFixed(1)}s
+                            </div>
+                            <div className="text-emerald-200 font-medium">Time</div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Stats Box */}
-                <div className="bg-gray-50 rounded-xl p-4 md:p-6 flex justify-around items-center">
-                    <div className="text-center">
-                        <div className="text-2xl md:text-3xl font-bold text-emerald-600">
-                            {currentScore}
-                        </div>
-                        <div className="text-xs md:text-sm text-gray-500">Lives Saved</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl md:text-3xl font-bold text-red-500">
-                            {gameTime.toFixed(1)}s
-                        </div>
-                        <div className="text-xs md:text-sm text-gray-500">Time</div>
-                    </div>
-                </div>
-
-                {/* Mobile Toggle Buttons */}
-                <div className="flex justify-center gap-2 md:hidden">
+                {/* Mobile Toggle */}
+                <div className="flex justify-center gap-3 mb-6 md:hidden">
                     <button
                         onClick={() => setActiveBoard('scores')}
-                        className={`p-2 rounded-lg flex items-center gap-2 ${
+                        className={`px-6 py-3 rounded-xl flex items-center gap-2 transition-colors ${
                             activeBoard === 'scores' 
-                            ? 'bg-emerald-100 text-emerald-700' 
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-emerald-500/20 text-emerald-300' 
+                            : 'bg-white/5 text-white/70'
                         }`}
                     >
                         <Star className="w-5 h-5" />
@@ -100,10 +108,10 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
                     </button>
                     <button
                         onClick={() => setActiveBoard('times')}
-                        className={`p-2 rounded-lg flex items-center gap-2 ${
+                        className={`px-6 py-3 rounded-xl flex items-center gap-2 transition-colors ${
                             activeBoard === 'times' 
-                            ? 'bg-emerald-100 text-emerald-700' 
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-emerald-500/20 text-emerald-300' 
+                            : 'bg-white/5 text-white/70'
                         }`}
                     >
                         <Timer className="w-5 h-5" />
@@ -112,7 +120,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
                 </div>
 
                 {/* Leaderboards */}
-                <div className="hidden md:flex justify-between gap-4">
+                <div className="hidden md:flex justify-center gap-6 mb-8">
                     <LeaderboardPanel
                         title="Best Scores"
                         entries={highScores}
@@ -129,8 +137,8 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
                     />
                 </div>
 
-                {/* Mobile Single Leaderboard */}
-                <div className="md:hidden">
+                {/* Mobile Leaderboard */}
+                <div className="md:hidden mb-8">
                     {activeBoard === 'scores' ? (
                         <LeaderboardPanel
                             title="Best Scores"
@@ -154,10 +162,11 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
                 <div className="flex justify-center">
                     <button
                         onClick={onPlayAgain}
-                        className="group relative flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-full text-lg md:text-xl font-bold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                        className="group relative flex items-center gap-3 px-12 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-full text-xl font-bold shadow-xl transition-all duration-300 hover:scale-105 hover:-translate-y-1"
                     >
-                        <Play className="w-5 h-5 md:w-6 md:h-6" />
+                        <Play className="w-6 h-6" />
                         Play Again
+                        <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
                         <div className="absolute -inset-1 bg-emerald-500 rounded-full blur opacity-30 group-hover:opacity-40 transition-opacity" />
                     </button>
                 </div>

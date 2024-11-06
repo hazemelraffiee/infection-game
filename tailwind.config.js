@@ -10,8 +10,14 @@ export default {
         'virus-pattern': "url('./src/assets/background.svg')",
       },
       backgroundColor: {
-        'virus-base': '#E1F5FE',
-      }
+        'virus-base': '#0A1A2F',
+      },
+      animation: {
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      gradients: {
+        'cyber': 'linear-gradient(135deg, #0A1A2F 0%, #1A2A3F 100%)',
+      },
     },
   },
   plugins: [],

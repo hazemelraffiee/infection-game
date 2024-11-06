@@ -6,6 +6,7 @@ patterns=(
     "/src/**/*.ts"
 	"/src/**/*.css"
     "/src/**/*.svg"
+    "tailwind.config.js"
 )
 
 # Output file
