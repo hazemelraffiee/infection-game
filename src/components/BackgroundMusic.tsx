@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
+import musicUrl from '../assets/music.mp3';
 
 const BackgroundMusic = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -7,7 +8,7 @@ const BackgroundMusic = () => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const audio = new Audio('https://github.com/hazemelraffiee/infection-game/raw/refs/heads/main/src/assets/music.mp3');
+    const audio = new Audio(musicUrl);
     audio.loop = true;
     audioRef.current = audio;
 
