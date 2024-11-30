@@ -108,15 +108,16 @@ export class Ball {
 
     private handleWallCollisions(dimensions: Dimensions): void {
         let velocityChanged = false;
+        const margin = 20; // 20px margin from all sides
 
-        if (this.x + this.radius > dimensions.width || this.x - this.radius < 0) {
+        if (this.x + this.radius > dimensions.width - margin || this.x - this.radius < margin) {
             this.vx *= -1;
-            this.x = Math.max(this.radius, Math.min(this.x, dimensions.width - this.radius));
+            this.x = Math.max(margin + this.radius, Math.min(this.x, dimensions.width - margin - this.radius));
             velocityChanged = true;
         }
-        if (this.y + this.radius > dimensions.height || this.y - this.radius < 0) {
+        if (this.y + this.radius > dimensions.height - margin || this.y - this.radius < margin) {
             this.vy *= -1;
-            this.y = Math.max(this.radius, Math.min(this.y, dimensions.height - this.radius));
+            this.y = Math.max(margin + this.radius, Math.min(this.y, dimensions.height - margin - this.radius));
             velocityChanged = true;
         }
 

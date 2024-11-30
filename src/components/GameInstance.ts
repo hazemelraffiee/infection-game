@@ -120,6 +120,8 @@ export class GameInstance {
         }
 
         this.drawGameElements(ctx, isBackgroundState);
+        
+        this.drawBoundaryWall(ctx);
 
         if (isBackgroundState) {
             this.drawDarkeningOverlay(ctx);
@@ -215,5 +217,53 @@ export class GameInstance {
             isOver: !hasInfectedBalls && (hasSomeDead || survivors === this.balls.length),
             survivors,
         };
+    }
+
+    private drawBoundaryWall(ctx: CanvasRenderingContext2D): void {
+        const margin = 20;
+        
+        ctx.save();
+        
+        // Create gradient for cyberpunk effect
+        const gradient = ctx.createLinearGradient(0, 0, this.dimensions.width, this.dimensions.height);
+        gradient.addColorStop(0, '#00ffff');  // Cyan
+        gradient.addColorStop(0.5, '#0099ff'); // Blue
+        gradient.addColorStop(1, '#00ffff');   // Cyan
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        
+        // Add glow effect
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 10;
+        
+        // Draw the boundary rectangle
+        ctx.strokeRect(
+            margin, 
+            margin, 
+            this.dimensions.width - 2 * margin, 
+            this.dimensions.height - 2 * margin
+        );
+        
+        // Add inner glow line
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+            margin + 2, 
+            margin + 2, 
+            this.dimensions.width - 2 * (margin + 2), 
+            this.dimensions.height - 2 * (margin + 2)
+        );
+        
+        // Add outer glow line
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+        ctx.strokeRect(
+            margin - 2, 
+            margin - 2, 
+            this.dimensions.width - 2 * (margin - 2), 
+            this.dimensions.height - 2 * (margin - 2)
+        );
+        
+        ctx.restore();
     }
 }
